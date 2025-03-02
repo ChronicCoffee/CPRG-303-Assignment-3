@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet } from 'react-native';
+import { View, Text, TextInput, StyleSheet, Platform } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
+import { LinearGradient } from 'expo-linear-gradient';
 import { getDateFact } from './api';
 
 const App = () => {
@@ -18,71 +19,92 @@ const App = () => {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Date Fact Finder</Text>
-      <Picker
-        selectedValue={month}
-        style={styles.picker}
-        onValueChange={(itemValue) => {
-          setMonth(itemValue);
-          handleDateChange(itemValue, day);
-        }}>
-        <Picker.Item label="Select Month" value="" />
-        <Picker.Item label="January" value="1" />
-        <Picker.Item label="February" value="2" />
-        <Picker.Item label="March" value="3" />
-        <Picker.Item label="April" value="4" />
-        <Picker.Item label="May" value="5" />
-        <Picker.Item label="June" value="6" />
-        <Picker.Item label="July" value="7" />
-        <Picker.Item label="August" value="8" />
-        <Picker.Item label="September" value="9" />
-        <Picker.Item label="October" value="10" />
-        <Picker.Item label="November" value="11" />
-        <Picker.Item label="December" value="12" />
-      </Picker>
-      <TextInput
-        style={styles.input}
-        placeholder="Enter Day"
-        keyboardType="numeric"
-        value={day}
-        onChangeText={(text) => {
-          setDay(text);
-          handleDateChange(month, text);
-        }}
-      />
-      {fact ? <Text style={styles.fact}>{fact}</Text> : null}
-    </View>
+    <LinearGradient colors={['#4facfe', '#00f2fe']} style={styles.container}>
+      <View style={styles.card}>
+        <Text style={styles.title}>📅 Date Fact Finder</Text>
+
+        <Picker
+          selectedValue={month}
+          style={styles.picker}
+          dropdownIconColor="#007AFF"
+          onValueChange={(itemValue) => {
+            setMonth(itemValue);
+            handleDateChange(itemValue, day);
+          }}>
+          <Picker.Item label="Select Month" value="" />
+          {[
+            'January', 'February', 'March', 'April', 'May', 'June', 
+            'July', 'August', 'September', 'October', 'November', 'December'
+          ].map((month, index) => (
+            <Picker.Item key={index} label={month} value={(index + 1).toString()} />
+          ))}
+        </Picker>
+
+        <TextInput
+          style={styles.input}
+          placeholder="Enter Day (1-31)"
+          keyboardType="numeric"
+          maxLength={2}
+          value={day}
+          onChangeText={(text) => {
+            setDay(text);
+            handleDateChange(month, text);
+          }}
+        />
+
+        {fact ? <Text style={styles.fact}>{fact}</Text> : null}
+      </View>
+    </LinearGradient>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
     justifyContent: 'center',
+    alignItems: 'center',
+  },
+  card: {
+    backgroundColor: 'white',
+    width: '90%',
+    padding: 20,
+    borderRadius: 15,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+    elevation: 5,
   },
   title: {
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: 'bold',
-    marginBottom: 20,
     textAlign: 'center',
+    marginBottom: 20,
+    color: '#007AFF',
   },
   picker: {
     height: 50,
     width: '100%',
-    marginBottom: 20,
+    backgroundColor: '#f0f0f0',
+    borderRadius: 8,
+    marginBottom: 15,
   },
   input: {
-    height: 40,
-    borderColor: 'gray',
+    height: 45,
+    borderColor: '#007AFF',
     borderWidth: 1,
-    marginBottom: 20,
-    paddingHorizontal: 10,
+    borderRadius: 8,
+    paddingHorizontal: 15,
+    fontSize: 16,
+    backgroundColor: '#f9f9f9',
+    marginBottom: 15,
   },
   fact: {
     fontSize: 18,
     textAlign: 'center',
+    fontWeight: 'bold',
+    color: '#333',
+    marginTop: 15,
   },
 });
 
