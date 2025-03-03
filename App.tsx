@@ -1,5 +1,14 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, Platform, ScrollView } from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  StyleSheet,
+  Platform,
+  TouchableOpacity,
+  Modal,
+  ScrollView,
+} from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { getDateFact } from './api';
 
@@ -7,6 +16,7 @@ const App = () => {
   const [month, setMonth] = useState('');
   const [day, setDay] = useState('');
   const [fact, setFact] = useState('');
+  const [modalVisible, setModalVisible] = useState(false);
 
   const handleDateChange = async (selectedMonth: string, selectedDay: string) => {
     if (selectedMonth && selectedDay) {
@@ -21,26 +31,66 @@ const App = () => {
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>📅 Date Fact Finder</Text>
 
-      {/* Month Picker */}
+      {/* Month Picker - iOS uses Modal */}
       <View style={styles.pickerContainer}>
         <Text style={styles.label}>Select Month:</Text>
-        <Picker
-          selectedValue={month}
-          style={Platform.OS === 'ios' ? styles.pickerIOS : styles.picker}
-          itemStyle={Platform.OS === 'ios' ? styles.pickerItemIOS : null}
-          onValueChange={(itemValue) => {
-            setMonth(itemValue);
-            handleDateChange(itemValue, day);
-          }}
-        >
-          <Picker.Item label="Select Month" value="" />
-          {[
-            'January', 'February', 'March', 'April', 'May', 'June',
-            'July', 'August', 'September', 'October', 'November', 'December'
-          ].map((monthName, index) => (
-            <Picker.Item key={index} label={monthName} value={(index + 1).toString()} />
-          ))}
-        </Picker>
+        {Platform.OS === 'ios' ? (
+          <>
+            <TouchableOpacity
+              style={styles.iosPickerButton}
+              onPress={() => setModalVisible(true)}
+            >
+              <Text style={styles.iosPickerText}>
+                {month ? `Month: ${month}` : 'Select Month'}
+              </Text>
+            </TouchableOpacity>
+
+            <Modal
+              transparent
+              animationType="slide"
+              visible={modalVisible}
+              onRequestClose={() => setModalVisible(false)}
+            >
+              <View style={styles.modalContainer}>
+                <View style={styles.modalContent}>
+                  <Picker
+                    selectedValue={month}
+                    onValueChange={(itemValue) => {
+                      setMonth(itemValue);
+                      setModalVisible(false);
+                      handleDateChange(itemValue, day);
+                    }}
+                  >
+                    <Picker.Item label="Select Month" value="" />
+                    {[
+                      'January', 'February', 'March', 'April', 'May', 'June',
+                      'July', 'August', 'September', 'October', 'November', 'December'
+                    ].map((monthName, index) => (
+                      <Picker.Item key={index} label={monthName} value={(index + 1).toString()} />
+                    ))}
+                  </Picker>
+                </View>
+              </View>
+            </Modal>
+          </>
+        ) : (
+          <Picker
+            selectedValue={month}
+            style={styles.picker}
+            onValueChange={(itemValue) => {
+              setMonth(itemValue);
+              handleDateChange(itemValue, day);
+            }}
+          >
+            <Picker.Item label="Select Month" value="" />
+            {[
+              'January', 'February', 'March', 'April', 'May', 'June',
+              'July', 'August', 'September', 'October', 'November', 'December'
+            ].map((monthName, index) => (
+              <Picker.Item key={index} label={monthName} value={(index + 1).toString()} />
+            ))}
+          </Picker>
+        )}
       </View>
 
       {/* Day Input */}
@@ -71,47 +121,51 @@ const styles = StyleSheet.create({
     padding: 20,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f5f5f5', 
+    backgroundColor: '#f9f9f9', 
   },
   title: {
-    fontSize: 26,
+    fontSize: 28,
     fontWeight: 'bold',
-    marginBottom: 20,
+    marginBottom: 25,
     color: '#333',
     textAlign: 'center',
   },
   pickerContainer: {
     width: '100%',
     backgroundColor: '#fff',
-    borderRadius: 8,
-    padding: 10,
+    borderRadius: 12,
+    padding: 15,
     marginBottom: 20,
     elevation: 3, 
-    shadowColor: '#000', 
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
-    shadowRadius: 3,
+    shadowRadius: 4,
+  },
+  iosPickerButton: {
+    paddingVertical: 12,
+    backgroundColor: '#e0e0e0',
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  iosPickerText: {
+    fontSize: 18,
+    color: '#333',
   },
   picker: {
     height: 50,
     width: '100%',
   },
-  pickerIOS: {
-    height: 150,
-  },
-  pickerItemIOS: {
-    fontSize: 20,
-  },
   inputContainer: {
     width: '100%',
     backgroundColor: '#fff',
-    borderRadius: 8,
-    padding: 10,
+    borderRadius: 12,
+    padding: 15,
     elevation: 3,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
-    shadowRadius: 3,
+    shadowRadius: 4,
   },
   label: {
     fontSize: 16,
@@ -120,12 +174,13 @@ const styles = StyleSheet.create({
     color: '#555',
   },
   input: {
-    height: 40,
+    height: 45,
     borderColor: '#ddd',
     borderWidth: 1,
-    borderRadius: 5,
+    borderRadius: 8,
     paddingHorizontal: 10,
     backgroundColor: '#fff',
+    fontSize: 16,
   },
   fact: {
     fontSize: 18,
@@ -133,13 +188,24 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 20,
     padding: 15,
-    borderRadius: 8,
+    borderRadius: 12,
     backgroundColor: '#fff',
     elevation: 3,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
-    shadowRadius: 3,
+    shadowRadius: 4,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0,0,0,0.5)', 
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 20,
   },
 });
 
